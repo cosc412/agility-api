@@ -21,4 +21,25 @@ export class AgilityDatastore {
       }));
   }
 
+  /**
+   * Get's the projects a user is apart of
+   * @param userID The user's ID
+   */
+  async getUsersProjects(userID: string) {
+    const projectIDs = await this.db.collection('team').find({ userID: userID }).toArray();
+    let pIDs: string[] = [];
+    projectIDs.forEach(item => {
+      pIDs.push(item.projectID);
+    });
+    return await this.getProjectsByIDs(pIDs);
+  }
+
+  /**
+   * Returns a array of projects given a list of project IDs
+   * @param pIDs Array of project IDs
+   */
+  async getProjectsByIDs(pIDs: string[]) {
+    return await this.db.collection('projects').find({ _id: { $in: pIDs } }).toArray();
+  }
+
 }
