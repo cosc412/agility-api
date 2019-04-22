@@ -134,4 +134,18 @@ export class AgilityDatastore {
     await this.db.collection('projects').deleteOne({ _id: new ObjectId(pID) });
   }
 
+  /**
+   * Updates the project metadata given a project id and metadata
+   * @param pID Project ID to update
+   * @param params Data to update
+   */
+  async updateProject(pID: string, params: { name: string, description: string }) {
+    await this.db.collection('projects').updateOne({ _id: new ObjectId(pID) }, {
+      $set: {
+        name: params.name,
+        description: params.description
+      }
+    });
+  }
+
 }
