@@ -46,6 +46,10 @@ export class AgilityDatastore {
     return await this.db.collection('projects').find({ _id: { $in: ids } }).toArray();
   }
 
+  /**
+   * Returns a project given it's ID
+   * @param pID The project ID
+   */
   async getProjectByID(pID: string) {
     return await this.db.collection('projects').findOne({ _id: new ObjectId(pID) });
   }
