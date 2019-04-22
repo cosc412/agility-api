@@ -85,7 +85,7 @@ export class AgilityDatastore {
    * Get's the projects a user is apart of
    * @param userID The user's ID
    */
-  async getUsersProjects(userID: string) {
+  async getUsersProjects(userID: any) {
     const projectIDs = await this.db.collection('team').find({ userID: userID }).toArray();
     let pIDs: string[] = [];
     projectIDs.forEach(item => {
@@ -118,6 +118,7 @@ export class AgilityDatastore {
     const id = new ObjectId();
     await this.db.collection('projects').insertOne({ _id: id,  name: params.name, description: params.description });
     await this.db.collection('team').insertOne({ projectID: id, userID: params.userID, role: 'Project Lead' });
+    return await this.getProjectByID(id.toHexString());
   }
 
 }

@@ -25,7 +25,7 @@ function startServer(agility: AgilityDatastore) {
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,userid');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
   });
@@ -57,8 +57,8 @@ function startServer(agility: AgilityDatastore) {
         description: req.body.description,
         userID: req.body.userID
       };
-      await agility.createProject(params);
-      res.sendStatus(201);
+      const project = await agility.createProject(params);
+      res.status(201).send(project._id);
     } catch (e) {
       console.error(e);
       res.status(500).send(e);
@@ -70,6 +70,16 @@ function startServer(agility: AgilityDatastore) {
       const id = req.params.id;
       const project = await agility.getProjectByID(id);
       res.status(200).send(project);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
+  app.get('/projects', async (req: Request, res: Response) => {
+    try {
+      const projects = await agility.getUsersProjects(req.header('userid'));
+      res.status(200).send(projects);
     } catch (e) {
       console.error(e);
       res.status(500).send(e);
