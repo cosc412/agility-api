@@ -1,4 +1,4 @@
-import { Collection, MongoClient, ObjectId, Db } from 'mongodb';
+import { MongoClient, ObjectId, Db } from 'mongodb';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const { OAuth2Client } = require('google-auth-library');
@@ -112,6 +112,12 @@ export class AgilityDatastore {
    */
   async getProjectByID(pID: string) {
     return await this.db.collection('projects').findOne({ _id: new ObjectId(pID) });
+  }
+  
+  async createProject(params: { name: string, description: string, userID: string }) {
+    const id = new ObjectId();
+    await this.db.collection('projects').insertOne({ _id: id,  name: params.name, description: params.description });
+    await this.db.collection('team').insertOne({ projectID: id, userID: params.userID, role: 'Project Lead' });
   }
 
 }

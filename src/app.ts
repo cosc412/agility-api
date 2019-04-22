@@ -21,6 +21,7 @@ function startServer(agility: AgilityDatastore) {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
 
+  // Needed to be able to connect to the client
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -43,7 +44,23 @@ function startServer(agility: AgilityDatastore) {
       const user = await agility.validateUser(token, params);
       res.status(200).send(user);
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
+  // Project Routes
+  app.post('/projects', async (req: Request, res: Response) => {
+    try {
+      const params = {
+        name: req.body.name,
+        description: req.body.description,
+        userID: req.body.userID
+      };
+      await agility.createProject(params);
+      res.sendStatus(201);
+    } catch (e) {
+      console.error(e);
       res.status(500).send(e);
     }
   });
