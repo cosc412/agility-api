@@ -1,14 +1,14 @@
-import { Collection, MongoClient, ObjectId } from 'mongodb';
+import { Collection, MongoClient, ObjectId, Db } from 'mongodb';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 const URL = process.env.MONGO_CONNECTION || '';
 
-export class OrdersDatastore {
-  orders: Collection;
+export class AgilityDatastore {
+  db: Db;
 
   constructor(client: MongoClient) {
-    this.orders = client.db().collection('orders');
+    this.db = client.db('AgilityDB');
   }
   
   static async connect() {
@@ -21,15 +21,4 @@ export class OrdersDatastore {
       }));
   }
 
-  async readAllOrders() {
-    return await this.orders.find({}).toArray();
-  }
-
-  async createOrder(name: string) {
-    await this.orders.insertOne({ name });
-  }
-
-  async deleteOrder(id: string) {
-    await this.orders.deleteOne({ _id: new ObjectId(id) });
-  }
 }
