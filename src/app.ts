@@ -84,6 +84,17 @@ function startServer(agility: AgilityDatastore) {
       console.error(e);
       res.status(500).send(e);
     }
+  });
+
+  app.delete('/projects/:id', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      await agility.deleteProject(id);
+      res.sendStatus(204);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
   })
 
   app.listen(port, () => {

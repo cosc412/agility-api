@@ -114,11 +114,24 @@ export class AgilityDatastore {
     return await this.db.collection('projects').findOne({ _id: new ObjectId(pID) });
   }
   
+  /**
+   * Creates a project with params given, initializes person as project lead
+   * @param params Project params [name, description, userID]
+   */
   async createProject(params: { name: string, description: string, userID: string }) {
     const id = new ObjectId();
     await this.db.collection('projects').insertOne({ _id: id,  name: params.name, description: params.description });
     await this.db.collection('team').insertOne({ projectID: id, userID: params.userID, role: 'Project Lead' });
     return await this.getProjectByID(id.toHexString());
+  }
+
+  /**
+   * Deletes a project and corrosponding team members from the database
+   * @param pID Project ID to delete
+   */
+  async deleteProject(pID: string) {
+    await this.db.collection('team').deleteMany({ projectID: new ObjectId(pID) });
+    await this.db.collection('projects').deleteOne({ _id: new ObjectId(pID) });
   }
 
 }
