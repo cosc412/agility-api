@@ -1,6 +1,8 @@
 import { Collection, MongoClient, ObjectId, Db } from 'mongodb';
 import * as dotenv from 'dotenv';
 dotenv.config();
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.CLIENT_ID);
 
 const URL = process.env.MONGO_CONNECTION || '';
 
@@ -19,6 +21,15 @@ export class AgilityDatastore {
         }
         resolve(client);
       }));
+  }
+
+  async validateUser(token: string, params: {name: string, email: string, imageURL: string}) {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    const id = payload['sub'];
   }
 
   /**

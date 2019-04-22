@@ -23,7 +23,10 @@ function startServer(agility: AgilityDatastore) {
 
   const port = process.env.PORT || 3000;
 
-
+  // User Routes
+  app.post('/users', async (req: Request, res: Response) => {
+    
+  });
 
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
