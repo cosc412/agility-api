@@ -21,11 +21,31 @@ function startServer(agility: AgilityDatastore) {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
 
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    next();
+  });
+
   const port = process.env.PORT || 3000;
 
   // User Routes
   app.post('/users', async (req: Request, res: Response) => {
-    
+    try {
+      const token = req.body.token;
+      const params = {
+        name: req.body.name,
+        email: req.body.email,
+        profileURL: req.body.profileURL
+      };
+      const user = await agility.validateUser(token, params);
+      res.status(200).send(user);
+    } catch (e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
   });
 
   app.listen(port, () => {
