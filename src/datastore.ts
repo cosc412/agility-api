@@ -214,4 +214,12 @@ export class AgilityDatastore {
     return await this.db.collection('tasks').find({ sprintID: sID }).toArray();
   }
 
+  /**
+   * Returns the task for a given task ID
+   * @param tID Task ID
+   */
+  async getSprintTask(tID: string) {
+    return await this.db.collection('tasks').findOne({ _id: new ObjectId(tID) });
+  }
+
 }
