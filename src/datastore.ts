@@ -206,4 +206,12 @@ export class AgilityDatastore {
     await this.db.collection('sprints').deleteOne({ _id: new ObjectId(sID) });
   }
 
+  /**
+   * Returns the related tasks for a given sprint
+   * @param sID Sprint ID
+   */
+  async getSprintTasks(sID: string) {
+    return await this.db.collection('tasks').find({ sprintID: sID }).toArray();
+  }
+
 }
