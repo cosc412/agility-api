@@ -179,4 +179,20 @@ export class AgilityDatastore {
     });
   }
 
+  /**
+   * Update an existing sprint with given data
+   * @param sID Sprint ID
+   * @param params Data needed to update a sprint
+   */
+  async updateSprint(sID: string, params: { projID: string, header: string, due: Date, description: string }) {
+    await this.db.collection('sprints').updateOne({ _id: sID }, {
+      $set: {
+        projID: params.projID,
+        header: params.header,
+        due: params.due,
+        description: params.description
+      }
+    });
+  }
+
 }
