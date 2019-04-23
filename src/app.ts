@@ -117,7 +117,18 @@ function startServer(agility: AgilityDatastore) {
       console.error(e);
       res.status(500).send(e);
     }
-  })
+  });
+
+  app.get('/sprints/:id', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const sprint = await agility.getSprintByID(id);
+      res.status(200).send(sprint);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
 
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
