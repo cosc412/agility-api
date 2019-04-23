@@ -25,7 +25,7 @@ function startServer(agility: AgilityDatastore) {
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,userid');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,userid,projectid');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
   });
@@ -110,7 +110,9 @@ function startServer(agility: AgilityDatastore) {
   // Sprint Routes
   app.get('/sprints', async (req: Request, res: Response) => {
     try {
-      
+      const pID = req.header('projectid') || '';
+      const sprints = await agility.getSprints(pID);
+      res.status(200).send(sprints);
     } catch (e) {
       console.error(e);
       res.status(500).send(e);
