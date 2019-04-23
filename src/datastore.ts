@@ -155,7 +155,7 @@ export class AgilityDatastore {
    * @param pID Project ID
    */
   async getSprints(pID: string) {
-    return await this.db.collection('sprints').find({ projID: new ObjectId(pID) }).toArray();
+    return await this.db.collection('sprints').find({ projID: pID }).toArray();
   }
 
   /**
