@@ -171,12 +171,15 @@ export class AgilityDatastore {
    * @param params Data needed to create a new sprint
    */
   async createSprint(params: { projID: string, header: string, due: Date, description: string }) {
+    const id = new ObjectId();
     await this.db.collection('sprints').insertOne({
+      _id: id,
       projID: params.projID,
       header: params.header,
       due: params.due,
       description: params.description
     });
+    return id.toHexString();
   }
 
   /**

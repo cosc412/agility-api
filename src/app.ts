@@ -130,6 +130,22 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.post('/sprints', async (req: Request, res: Response) => {
+    try {
+      const params = {
+        projID: req.body.projID,
+        header: req.body.header,
+        due: new Date(req.body.due),
+        description: req.body.description
+      };
+      const sID = await agility.createSprint(params);
+      res.status(201).send(sID);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
