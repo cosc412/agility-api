@@ -146,6 +146,23 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.patch('/sprints/:id', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const params = {
+        projID: req.body.projID,
+        header: req.body.header,
+        due: new Date(req.body.due),
+        description: req.body.description
+      };
+      await agility.updateSprint(id, params);
+      res.sendStatus(204);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
