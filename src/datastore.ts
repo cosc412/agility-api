@@ -150,4 +150,14 @@ export class AgilityDatastore {
     });
   }
 
+  /**
+   * Returns the sprints associated with a project given a project ID
+   * @param pID Project ID
+   */
+  async getSprints(pID: string) {
+    return this.db.collection('sprints').find({ projID: new ObjectId(pID) }).toArray();
+  }
+
+  
+
 }
