@@ -155,9 +155,28 @@ export class AgilityDatastore {
    * @param pID Project ID
    */
   async getSprints(pID: string) {
-    return this.db.collection('sprints').find({ projID: new ObjectId(pID) }).toArray();
+    return await this.db.collection('sprints').find({ projID: new ObjectId(pID) }).toArray();
   }
 
-  
+  /**
+   * Returns the sprint given its ID
+   * @param sID Sprint ID
+   */
+  async getSprintByID(sID: string) {
+    return await this.db.collection('sprints').findOne({ _id: new ObjectId(sID) });
+  }
+
+  /**
+   * Creates a new sprint given the data needed to create a new sprint
+   * @param params Data needed to create a new sprint
+   */
+  async createSprint(params: { projID: string, header: string, due: Date, description: string }) {
+    await this.db.collection('sprints').insertOne({
+      projID: params.projID,
+      header: params.header,
+      due: params.due,
+      description: params.description
+    });
+  }
 
 }
