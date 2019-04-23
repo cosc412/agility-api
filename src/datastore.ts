@@ -185,7 +185,7 @@ export class AgilityDatastore {
    * @param params Data needed to update a sprint
    */
   async updateSprint(sID: string, params: { projID: string, header: string, due: Date, description: string }) {
-    await this.db.collection('sprints').updateOne({ _id: sID }, {
+    await this.db.collection('sprints').updateOne({ _id: new ObjectId(sID) }, {
       $set: {
         projID: params.projID,
         header: params.header,
@@ -193,6 +193,14 @@ export class AgilityDatastore {
         description: params.description
       }
     });
+  }
+
+  /**
+   * Deletes a sprint given its ID
+   * @param sID Sprint ID
+   */
+  async deleteSprint(sID: string) {
+    await this.db.collection('sprints').deleteOne({ _id: new ObjectId(sID) });
   }
 
 }
