@@ -222,4 +222,23 @@ export class AgilityDatastore {
     return await this.db.collection('tasks').findOne({ _id: new ObjectId(tID) });
   }
 
+  /**
+   * Creates a new task given input
+   * @param sID Sprint ID
+   * @param params Data needed to make a task
+   */
+  async createTask(sID: string, params: {due: Date, header: string, description: string}) {
+    const id = new ObjectId();
+    await this.db.collection('tasks').insertOne({
+      _id: id,
+      sprintID: sID,
+      due: params.due,
+      header: params.header,
+      description: params.description,
+      block: [],
+      note: []
+    });
+    return id;
+  }
+
 }
