@@ -36,12 +36,7 @@ function startServer(agility: AgilityDatastore) {
   app.post('/users', async (req: Request, res: Response) => {
     try {
       const token = req.body.token;
-      const params = {
-        name: req.body.name,
-        email: req.body.email,
-        profileURL: req.body.profileURL
-      };
-      const user = await agility.validateUser(token, params);
+      const user = await agility.validateUser(token);
       res.status(200).send(user);
     } catch (e) {
       console.error(e);
