@@ -25,7 +25,7 @@ function startServer(agility: AgilityDatastore) {
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,userid,projectid');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,userid,projectid,sprintid');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
   });
@@ -169,10 +169,22 @@ function startServer(agility: AgilityDatastore) {
       await agility.deleteSprint(id);
       res.sendStatus(204);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       res.status(500).send(e);
     }
   });
+
+  // Task Routes
+  app.get('/tasks', async (req: Request, res: Response) => {
+    try {
+      const sID = req.header('sprintid') || '';
+      const tasks = await agility.getSprintTasks(sID);
+      res.status(200).send(tasks);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  })
 
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
