@@ -131,6 +131,17 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.get('/projects/:id/team', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const team = await agility.getProjectTeam(id);
+      res.status(200).send(team);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  })
+
   // Sprint Routes
   app.get('/sprints', async (req: Request, res: Response) => {
     try {
