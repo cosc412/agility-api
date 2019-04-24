@@ -35,6 +35,17 @@ function startServer(agility: AgilityDatastore) {
   // User Routes
   app.post('/users', async (req: Request, res: Response) => {
     try {
+      const userIDs = req.body.userIDs;
+      const users = await agility.getUsersFromList(userIDs);
+      res.status(200).send(users);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
+  app.post('/users/validate', async (req: Request, res: Response) => {
+    try {
       const token = req.body.token;
       const user = await agility.validateUser(token);
       res.status(200).send(user);
