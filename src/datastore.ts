@@ -253,7 +253,8 @@ export class AgilityDatastore {
       header: string,
       description: string,
       block: string[],
-      note: string[]}) {
+      note: string[]
+    }) {
         await this.db.collection('tasks').updateOne({ _id: new ObjectId(tID) }, {
           $set: {
             sprintID: params.sID,
