@@ -73,6 +73,11 @@ export class AgilityDatastore {
     return await this.db.collection('users').findOne({ _id: id });
   }
 
+  /**
+   * Updates the user in the database
+   * @param id User ID
+   * @param params User data to update
+   */
   async updateUser(id: string, params: {name: string, email: string, profileURL: string}) {
     await this.db.collection('users').findOneAndUpdate({ _id: id }, {
       $set: {
@@ -81,6 +86,15 @@ export class AgilityDatastore {
         profileURL: params.profileURL
       }
     });
+  }
+
+  /**
+   * Returns the role of the user for a given project
+   * @param userID User ID
+   * @param projID Project ID
+   */
+  async getMemberStatus(userID: string, projID: string) {
+    return await this.db.collection('team').findOne({ userID: userID, projectID: new ObjectId(projID) });
   }
 
   /**

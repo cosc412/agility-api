@@ -44,6 +44,18 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.get('/users/:userID/projects/:projID', async (req: Request, res: Response) => {
+    try {
+      const userID = req.params.userID;
+      const projID = req.params.projID;
+      const member = await agility.getMemberStatus(userID, projID);
+      res.status(200).send(member);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
   // Project Routes
   app.post('/projects', async (req: Request, res: Response) => {
     try {
