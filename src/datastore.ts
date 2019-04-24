@@ -126,8 +126,21 @@ export class AgilityDatastore {
     return await this.db.collection('team').find({ projectID: new ObjectId(projID) }).toArray();
   }
 
+  /**
+   * Gets users from a list of user IDs
+   * @param userIDs List of user IDs
+   */
   async getUsersFromList(userIDs: string[]) {
     return await this.db.collection('users').find({ _id: {$in: userIDs} }).toArray();
+  }
+
+  /**
+   * Removes a team member for a given project
+   * @param userID User ID
+   * @param projectID Project ID
+   */
+  async removeTeamMember(userID: string, projectID: string) {
+    await this.db.collection('team').deleteOne({ userID: userID, projectID: new ObjectId(projectID) });
   }
 
   /**
