@@ -44,6 +44,17 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.get('/users/:userID', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.userID;
+      const roles = await agility.getAllMemberStatus(id);
+      res.status(200).send(roles);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  })
+
   app.get('/users/:userID/projects/:projID', async (req: Request, res: Response) => {
     try {
       const userID = req.params.userID;
@@ -85,7 +96,8 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/projects', async (req: Request, res: Response) => {
     try {
-      const projects = await agility.getUsersProjects(req.header('userid'));
+      const id = req.header('userid') || '';
+      const projects = await agility.getUsersProjects(id);
       res.status(200).send(projects);
     } catch (e) {
       console.error(e);

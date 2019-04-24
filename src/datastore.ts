@@ -98,10 +98,18 @@ export class AgilityDatastore {
   }
 
   /**
+   * Gets the projects and role for a given user
+   * @param userID User ID
+   */
+  async getAllMemberStatus(userID: string) {
+    return await this.db.collection('team').find({ userID: userID }).toArray();
+  }
+
+  /**
    * Get's the projects a user is apart of
    * @param userID The user's ID
    */
-  async getUsersProjects(userID: any) {
+  async getUsersProjects(userID: string) {
     const projectIDs = await this.db.collection('team').find({ userID: userID }).toArray();
     let pIDs: string[] = [];
     projectIDs.forEach(item => {
