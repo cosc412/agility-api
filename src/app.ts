@@ -78,6 +78,18 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.delete('/users/:userID/projects/:projID', async (req: Request, res: Response) => {
+    try {
+      const userID = req.params.userID;
+      const projID = req.params.projID;
+      await agility.removeTeamMember(userID, projID);
+      res.sendStatus(204);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
   // Project Routes
   app.post('/projects', async (req: Request, res: Response) => {
     try {
