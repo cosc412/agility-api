@@ -265,7 +265,32 @@ function startServer(agility: AgilityDatastore) {
       console.error(e);
       res.status(500).send(e);
     }
-  })
+  });
+
+  // Notes and Blocks Routes
+  app.post('/tasks/:taskID/notes', async (req: Request, res: Response) => {
+    try {
+      const tID = req.params.taskID;
+      const notes = req.body.notes;
+      await agility.updateNote(tID, notes);
+      res.sendStatus(204);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
+
+  app.post('/tasks/:taskID/blocks', async (req: Request, res: Response) => {
+    try {
+      const tID = req.params.taskID;
+      const blocks = req.body.blocks;
+      await agility.updateBlock(tID, blocks);
+      res.sendStatus(204);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  });
 
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
