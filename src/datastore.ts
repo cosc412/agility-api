@@ -232,6 +232,7 @@ export class AgilityDatastore {
    * @param sID Sprint ID
    */
   async deleteSprint(sID: string) {
+    await this.db.collection('tasks').deleteMany({ sprintID: sID });
     await this.db.collection('sprints').deleteOne({ _id: new ObjectId(sID) });
   }
 
