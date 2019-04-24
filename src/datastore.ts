@@ -119,6 +119,18 @@ export class AgilityDatastore {
   }
 
   /**
+   * Get's the project's team
+   * @param projID The project ID
+   */
+  async getProjectTeam(projID: string) {
+    return await this.db.collection('team').find({ projectID: new ObjectId(projID) }).toArray();
+  }
+
+  async getUsersFromList(userIDs: string[]) {
+    return await this.db.collection('users').find({ _id: {$in: userIDs} }).toArray();
+  }
+
+  /**
    * Returns a array of projects given a list of project IDs
    * @param pIDs Array of project IDs
    */
