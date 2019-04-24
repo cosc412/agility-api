@@ -154,6 +154,13 @@ export class AgilityDatastore {
    * @param pID Project ID to delete
    */
   async deleteProject(pID: string) {
+    const sprints = await this.getSprints(pID);
+    const sIDs: string[] = [];
+    sprints.forEach(sprint => {
+      sIDs.push(sprint._id.toHexString());          // Type string
+    });
+    await this.db.collection('tasks').deleteMany({ sprintID: { $in: sIDs } });
+    await this.db.collection('sprints').deleteMany({ projID: pID });
     await this.db.collection('team').deleteMany({ projectID: new ObjectId(pID) });
     await this.db.collection('projects').deleteOne({ _id: new ObjectId(pID) });
   }
