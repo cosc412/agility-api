@@ -267,4 +267,12 @@ export class AgilityDatastore {
         });
   }
 
+  /**
+   * Delete task given its ID
+   * @param tID Task ID
+   */
+  async deleteTask(tID: string) {
+    await this.db.collection('tasks').deleteOne({ _id: new ObjectId(tID) });
+  }
+
 }

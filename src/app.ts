@@ -232,6 +232,17 @@ function startServer(agility: AgilityDatastore) {
     }
   });
 
+  app.delete('/tasks/:id', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      await agility.deleteTask(id);
+      res.sendStatus(204);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e);
+    }
+  })
+
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
