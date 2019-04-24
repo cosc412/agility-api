@@ -241,4 +241,29 @@ export class AgilityDatastore {
     return id;
   }
 
+  /**
+   * Updates a task given input
+   * @param tID Task ID
+   * @param params Data needed to update a task
+   */
+  async updateTask(tID: string, params:
+    {
+      sID: string,
+      due: Date,
+      header: string,
+      description: string,
+      block: string[],
+      note: string[]}) {
+        await this.db.collection('tasks').updateOne({ _id: new ObjectId(tID) }, {
+          $set: {
+            sprintID: params.sID,
+            due: params.due,
+            header: params.header,
+            description: params.description,
+            block: params.block,
+            note: params.note
+          }
+        });
+  }
+
 }
