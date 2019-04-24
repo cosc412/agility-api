@@ -192,6 +192,25 @@ export class AgilityDatastore {
   }
 
   /**
+   * Adds user to a team for a given project
+   * @param pID Project ID
+   * @param params User to add email
+   */
+  async addUserToTeam(pID: string, params: {email: string}) {
+    const user = await this.db.collection('users').findOne({ email: params.email });
+    if (user) {
+      const check = await this.db.collection('team').findOne({ userID: user._id });
+      if (!check) {
+        await this.db.collection('team').insertOne({ projectID: pID, userID: user._id, role: 'Developer' });
+      } else {
+        throw new Error('User already exists in team');
+      }
+    } else {
+      throw new Error('User does not exist for given email');
+    }
+  }
+
+  /**
    * Returns the sprints associated with a project given a project ID
    * @param pID Project ID
    */

@@ -151,7 +151,21 @@ function startServer(agility: AgilityDatastore) {
       console.error(e);
       res.status(500).send(e);
     }
-  })
+  });
+
+  app.post('/projects/:id/team', async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const params = {
+        email: req.params.email
+      };
+      await agility.addUserToTeam(id, params);
+      res.sendStatus(201);
+    } catch (e) {
+      console.error(e);
+      res.send(500).send(e);
+    }
+  });
 
   // Sprint Routes
   app.get('/sprints', async (req: Request, res: Response) => {
