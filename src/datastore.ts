@@ -297,4 +297,17 @@ export class AgilityDatastore {
     await this.db.collection('tasks').deleteOne({ _id: new ObjectId(tID) });
   }
 
+  /**
+   * Updates the notes for a given task [add, updated, and delete]
+   * @param tID Task ID
+   * @param notes Notes to add/update/delete
+   */
+  async updateNote(tID: string, notes: string[]) {
+    await this.db.collection('tasks').updateOne({ _id: new ObjectId(tID) }, {
+      $set: {
+        note: notes
+      }
+    });
+  }
+
 }
