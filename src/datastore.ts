@@ -310,4 +310,17 @@ export class AgilityDatastore {
     });
   }
 
+  /**
+   * Updates the blocks for a given task [add, update, and delete]
+   * @param tID Task ID
+   * @param blocks Blocks to add/update/delete
+   */
+  async updateBlock(tID: string, blocks: string[]) {
+    await this.db.collection('tasks').updateOne({ _id: new ObjectId(tID) }, {
+      $set: {
+        block: blocks
+      }
+    });
+  }
+
 }
