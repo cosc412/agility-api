@@ -199,9 +199,9 @@ export class AgilityDatastore {
   async addUserToTeam(pID: string, params: {email: string}) {
     const user = await this.db.collection('users').findOne({ email: params.email });
     if (user) {
-      const check = await this.db.collection('team').findOne({ userID: user._id });
+      const check = await this.db.collection('team').findOne({ userID: user._id, projectID: new ObjectId(pID) });
       if (!check) {
-        await this.db.collection('team').insertOne({ projectID: pID, userID: user._id, role: 'Developer' });
+        await this.db.collection('team').insertOne({ projectID: new ObjectId(pID), userID: user._id, role: 'Developer' });
       } else {
         throw new Error('User already exists in team');
       }

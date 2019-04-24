@@ -157,7 +157,7 @@ function startServer(agility: AgilityDatastore) {
     try {
       const id = req.params.id;
       const params = {
-        email: req.params.email
+        email: req.body.email
       };
       await agility.addUserToTeam(id, params);
       res.sendStatus(201);
