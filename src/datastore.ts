@@ -105,6 +105,12 @@ export class AgilityDatastore {
     return await this.db.collection('team').find({ userID: userID }).toArray();
   }
 
+  /**
+   * Updates the status for a given team member
+   * @param userID User ID
+   * @param projID Project ID
+   * @param role Role to update
+   */
   async updateMemberStatus(userID: string, projID: string, role: string) {
     await this.db.collection('team').findOneAndUpdate({ userID: userID, projectID: new ObjectId(projID) }, {
       $set: {
