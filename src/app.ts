@@ -39,7 +39,12 @@ function startServer(agility: AgilityDatastore) {
       if (!auth) {
         res.status(401).send(new Error('You must be signed in'));
       }
+
       const userIDs = req.body.userIDs;
+      if (!userIDs || userIDs.length === 0) {
+        res.status(400).send(new Error('There must be at least one user ID to find'));
+      }
+
       const users = await agility.getUsersFromList(userIDs);
       res.status(200).send(users);
     } catch (e) {
@@ -65,6 +70,7 @@ function startServer(agility: AgilityDatastore) {
       if (!auth) {
         res.status(401).send(new Error('You must be signed in'));
       }
+
       const id = req.params.userID;
       const roles = await agility.getAllMemberStatus(id);
       res.status(200).send(roles);
@@ -131,8 +137,12 @@ function startServer(agility: AgilityDatastore) {
       const params = {
         name: req.body.name,
         description: req.body.description,
-        userID: req.body.userID
+        userID: auth['sub']
       };
+      if (params.name === undefined || params.description === undefined || params.userID === undefined) {
+        res.status(400).send(new Error('You must have a project name, description, and your userID'));
+      }
+      
       const project = await agility.createProject(params);
       res.status(201).send(project._id);
     } catch (e) {
@@ -168,6 +178,7 @@ function startServer(agility: AgilityDatastore) {
       if (!auth) {
         res.status(401).send(new Error('You must be signed in'));
       }
+
       const projects = await agility.getUsersProjects(auth['sub']);
       res.status(200).send(projects);
     } catch (e) {
@@ -209,6 +220,10 @@ function startServer(agility: AgilityDatastore) {
         name: req.body.name,
         description: req.body.description
       }
+      if (params.name === undefined || params.description === undefined) {
+        res.status(400).send(new Error('You must include a project name and description'));
+      }
+
       const canUpdate = await agility.getMemberStatus(auth['sub'], id);
       if (!canUpdate || canUpdate.role === 'Developer') {
         res.status(403).send(new Error('You are unauthorized to update this project'));
@@ -254,6 +269,10 @@ function startServer(agility: AgilityDatastore) {
       const params = {
         email: req.body.email
       };
+      if (params.email === undefined) {
+        res.status(400).send(new Error('You must include a email in the request'));
+      }
+
       const canCreate = await agility.getMemberStatus(auth['sub'], id);
       if (!canCreate || canCreate.role === 'Developer') {
         res.status(403).send(new Error('You are unauthorized to add users to this project'));
@@ -277,6 +296,10 @@ function startServer(agility: AgilityDatastore) {
       const projID = req.params.id;
       const userID = req.body.userID;
       const role = req.body.role;
+      if (userID === undefined || role === undefined) {
+        res.status(400).send(new Error('You must include a userID and a role in the request'));
+      }
+
       const canUpdate = await agility.getMemberStatus(auth['sub'], projID);
       if (!canUpdate || canUpdate.role === 'Developer') {
         res.status(403).send(new Error('You are unauthorized to change users roles in this project'));
@@ -320,7 +343,7 @@ function startServer(agility: AgilityDatastore) {
       }
 
       const id = req.params.id;
-      const pID = req.params.pID;
+      const pID = req.header('projectid') || '';
       const canRead = await agility.getMemberStatus(auth['sub'], pID);
       if (!canRead) {
         res.status(403).send(new Error('You are unauthorized to see this sprint'));
@@ -347,6 +370,10 @@ function startServer(agility: AgilityDatastore) {
         due: new Date(req.body.due),
         description: req.body.description
       };
+      if (params.projID === undefined || params.header === undefined || params.due === undefined || params.description === undefined) {
+        res.status(400).send(new Error('You must include a projectID, sprint header, due date, and description in the request'));
+      }
+
       const canCreate = await agility.getMemberStatus(auth['sub'], params.projID);
       if (!canCreate || canCreate.role === 'Developer') {
         res.status(403).send(new Error('You are unauthorized to create a sprint for this project'));
@@ -374,6 +401,10 @@ function startServer(agility: AgilityDatastore) {
         due: new Date(req.body.due),
         description: req.body.description
       };
+      if (params.projID === undefined || params.header === undefined || params.due === undefined || params.description === undefined) {
+        res.status(400).send(new Error('You must include a projectID, sprint header, due date, and description in the request'));
+      }
+
       const canUpdate = await agility.getMemberStatus(auth['sub'], params.projID);
       if (!canUpdate || canUpdate.role === 'Developer') {
         res.status(403).send(new Error('You are unauthorized to update this sprint'));
@@ -468,6 +499,11 @@ function startServer(agility: AgilityDatastore) {
         description: req.body.description
       };
       const pID = req.body.projectID;
+      if (params.due === undefined || params.header === undefined || params.description === undefined || sID === undefined || pID === undefined) {
+        res.status(400).send(
+          new Error('You must include a projectID, sprintID, task due date, header, and description in the request'));
+      }
+
       const canCreate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canCreate) {
         res.status(403).send(new Error('You are unauthorized to create a task for this sprint'));
@@ -497,6 +533,11 @@ function startServer(agility: AgilityDatastore) {
         block: req.body.block,
         note: req.body.note
       };
+      if (params.sID === undefined || params.due === undefined || params.header === undefined || params.description === undefined || params.block === undefined || params.note === undefined) {
+        res.status(400).send(
+          new Error('You must include a sprintID, task due date, header, description, blocks, and notes in the request'));
+      }
+
       const pID = req.header('projectid') || '';
       const canUpdate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canUpdate) {
@@ -542,6 +583,10 @@ function startServer(agility: AgilityDatastore) {
 
       const tID = req.params.taskID;
       const notes = req.body.notes;
+      if (notes === undefined) {
+        res.status(400).send(new Error('You must include notes in the request'));
+      }
+
       const pID = req.header('projectid') || '';
       const canCreate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canCreate) {
@@ -565,6 +610,10 @@ function startServer(agility: AgilityDatastore) {
 
       const tID = req.params.taskID;
       const blocks = req.body.blocks;
+      if (blocks === undefined) {
+        res.status(400).send(new Error('You must include blocks in the request'));
+      }
+
       const pID = req.header('projectid') || '';
       const canCreate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canCreate) {
