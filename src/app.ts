@@ -395,8 +395,8 @@ function startServer(agility: AgilityDatastore) {
       }
 
       const id = req.params.id;
-      const pID = req.body.projectID;
-      const canDelete = await agility.getMemberStatus(auth['sub'], pID);
+      const sprint = await agility.getSprintByID(id);
+      const canDelete = await agility.getMemberStatus(auth['sub'], sprint.projID);
       if (!canDelete || canDelete.role === 'Developer') {
         res.status(403).send(new Error('You are unauthorized to delete this sprint'));
       }
@@ -570,7 +570,7 @@ function startServer(agility: AgilityDatastore) {
       if (!canCreate) {
         res.status(403).send(new Error('You are unauthorized to update blocks for this task'));
       }
-      
+
       await agility.updateBlock(tID, blocks);
       res.sendStatus(204);
     } catch (e) {
