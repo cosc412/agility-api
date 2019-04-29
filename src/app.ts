@@ -25,7 +25,7 @@ function startServer(agility: AgilityDatastore) {
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,userid,projectid,sprintid');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,projectid,sprintid,authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
   });
@@ -35,6 +35,10 @@ function startServer(agility: AgilityDatastore) {
   // User Routes
   app.post('/users', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
       const userIDs = req.body.userIDs;
       const users = await agility.getUsersFromList(userIDs);
       res.status(200).send(users);
@@ -57,6 +61,10 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/users/:userID', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
       const id = req.params.userID;
       const roles = await agility.getAllMemberStatus(id);
       res.status(200).send(roles);
@@ -68,8 +76,19 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/users/:userID/projects/:projID', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const userID = req.params.userID;
       const projID = req.params.projID;
+      const canRead = await agility.getMemberStatus(auth['sub'], projID);
+
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this project'));
+      }
+
       const member = await agility.getMemberStatus(userID, projID);
       res.status(200).send(member);
     } catch (e) {
@@ -80,8 +99,19 @@ function startServer(agility: AgilityDatastore) {
 
   app.delete('/users/:userID/projects/:projID', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const userID = req.params.userID;
       const projID = req.params.projID;
+      const canDelete = await agility.getMemberStatus(auth['sub'], projID);
+
+      if (!canDelete || canDelete.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to remove team members from this project'));
+      }
+
       await agility.removeTeamMember(userID, projID);
       res.sendStatus(204);
     } catch (e) {
@@ -93,6 +123,11 @@ function startServer(agility: AgilityDatastore) {
   // Project Routes
   app.post('/projects', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const params = {
         name: req.body.name,
         description: req.body.description,
@@ -108,7 +143,17 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/projects/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const canRead = await agility.getMemberStatus(auth['sub'], id);
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this project'));
+      }
+
       const project = await agility.getProjectByID(id);
       res.status(200).send(project);
     } catch (e) {
@@ -119,8 +164,11 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/projects', async (req: Request, res: Response) => {
     try {
-      const id = req.header('userid') || '';
-      const projects = await agility.getUsersProjects(id);
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+      const projects = await agility.getUsersProjects(auth['sub']);
       res.status(200).send(projects);
     } catch (e) {
       console.error(e);
@@ -130,7 +178,17 @@ function startServer(agility: AgilityDatastore) {
 
   app.delete('/projects/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const canDelete = await agility.getMemberStatus(auth['sub'], id);
+      if (!canDelete || canDelete.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to delete this project'));
+      }
+
       await agility.deleteProject(id);
       res.sendStatus(204);
     } catch (e) {
@@ -141,11 +199,21 @@ function startServer(agility: AgilityDatastore) {
 
   app.patch('/projects/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
       const params = {
         name: req.body.name,
         description: req.body.description
       }
+      const canUpdate = await agility.getMemberStatus(auth['sub'], id);
+      if (!canUpdate || canUpdate.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to update this project'));
+      }
+
       await agility.updateProject(id, params);
       res.sendStatus(204);
     } catch (e) {
@@ -156,7 +224,17 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/projects/:id/team', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const canRead = await agility.getMemberStatus(auth['sub'], id);
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this project team'));
+      }
+
       const team = await agility.getProjectTeam(id);
       res.status(200).send(team);
     } catch (e) {
@@ -167,10 +245,20 @@ function startServer(agility: AgilityDatastore) {
 
   app.post('/projects/:id/team', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
       const params = {
         email: req.body.email
       };
+      const canCreate = await agility.getMemberStatus(auth['sub'], id);
+      if (!canCreate || canCreate.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to add users to this project'));
+      }
+
       await agility.addUserToTeam(id, params);
       res.sendStatus(201);
     } catch (e) {
@@ -181,9 +269,19 @@ function startServer(agility: AgilityDatastore) {
 
   app.patch('/projects/:id/team', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const projID = req.params.id;
       const userID = req.body.userID;
       const role = req.body.role;
+      const canUpdate = await agility.getMemberStatus(auth['sub'], projID);
+      if (!canUpdate || canUpdate.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to change users roles in this project'));
+      }
+
       await agility.updateMemberStatus(userID, projID, role);
       res.sendStatus(204);
     } catch (e) {
@@ -195,7 +293,17 @@ function startServer(agility: AgilityDatastore) {
   // Sprint Routes
   app.get('/sprints', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const pID = req.header('projectid') || '';
+      const canRead = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this project\'s sprints'));
+      }
+
       const sprints = await agility.getSprints(pID);
       res.status(200).send(sprints);
     } catch (e) {
@@ -206,7 +314,18 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/sprints/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const pID = req.params.pID;
+      const canRead = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this sprint'));
+      }
+
       const sprint = await agility.getSprintByID(id);
       res.status(200).send(sprint);
     } catch (e) {
@@ -217,12 +336,22 @@ function startServer(agility: AgilityDatastore) {
 
   app.post('/sprints', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const params = {
         projID: req.body.projID,
         header: req.body.header,
         due: new Date(req.body.due),
         description: req.body.description
       };
+      const canCreate = await agility.getMemberStatus(auth['sub'], params.projID);
+      if (!canCreate || canCreate.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to create a sprint for this project'));
+      }
+
       const sID = await agility.createSprint(params);
       res.status(201).send(sID);
     } catch (e) {
@@ -233,6 +362,11 @@ function startServer(agility: AgilityDatastore) {
 
   app.patch('/sprints/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
       const params = {
         projID: req.body.projID,
@@ -240,6 +374,11 @@ function startServer(agility: AgilityDatastore) {
         due: new Date(req.body.due),
         description: req.body.description
       };
+      const canUpdate = await agility.getMemberStatus(auth['sub'], params.projID);
+      if (!canUpdate || canUpdate.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to update this sprint'));
+      }
+
       await agility.updateSprint(id, params);
       res.sendStatus(204);
     } catch (e) {
@@ -250,7 +389,18 @@ function startServer(agility: AgilityDatastore) {
 
   app.delete('/sprints/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const pID = req.body.projectID;
+      const canDelete = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canDelete || canDelete.role === 'Developer') {
+        res.status(403).send(new Error('You are unauthorized to delete this sprint'));
+      }
+
       await agility.deleteSprint(id);
       res.sendStatus(204);
     } catch (e) {
@@ -262,7 +412,18 @@ function startServer(agility: AgilityDatastore) {
   // Task Routes
   app.get('/tasks', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const sID = req.header('sprintid') || '';
+      const pID = req.header('projectid') || '';
+      const canRead = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this sprint\'s tasks'));
+      }
+
       const tasks = await agility.getSprintTasks(sID);
       res.status(200).send(tasks);
     } catch (e) {
@@ -273,7 +434,18 @@ function startServer(agility: AgilityDatastore) {
 
   app.get('/tasks/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const pID = req.header('projectid') || '';
+      const canRead = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canRead) {
+        res.status(403).send(new Error('You are unauthorized to see this task'));
+      }
+
       const task = await agility.getSprintTask(id);
       res.status(200).send(task);
     } catch (e) {
@@ -284,12 +456,23 @@ function startServer(agility: AgilityDatastore) {
 
   app.post('/tasks', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const sID = req.body.sprintID;
       const params = {
         due: new Date(req.body.due),
         header: req.body.header,
         description: req.body.description
       };
+      const pID = req.body.projectID;
+      const canCreate = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canCreate) {
+        res.status(403).send(new Error('You are unauthorized to create a task for this sprint'));
+      }
+
       const id = await agility.createTask(sID, params);
       res.status(201).send(id);
     } catch (e) {
@@ -300,6 +483,11 @@ function startServer(agility: AgilityDatastore) {
 
   app.patch('/tasks/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
       const params = {
         sID: req.body.sprintID,
@@ -309,6 +497,11 @@ function startServer(agility: AgilityDatastore) {
         block: req.body.block,
         note: req.body.note
       };
+      const pID = req.body.projectID;
+      const canUpdate = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canUpdate) {
+        res.status(403).send(new Error('You are unauthorized to update this task'));
+      }
       await agility.updateTask(id, params);
       res.sendStatus(204);
     } catch (e) {
@@ -319,7 +512,18 @@ function startServer(agility: AgilityDatastore) {
 
   app.delete('/tasks/:id', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const id = req.params.id;
+      const pID = req.body.projectID;
+      const canDelete = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canDelete) {
+        res.status(403).send(new Error('You are unauthorized to delete this task'));
+      }
+
       await agility.deleteTask(id);
       res.sendStatus(204);
     } catch (e) {
@@ -331,8 +535,19 @@ function startServer(agility: AgilityDatastore) {
   // Notes and Blocks Routes
   app.post('/tasks/:taskID/notes', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const tID = req.params.taskID;
       const notes = req.body.notes;
+      const pID = req.body.projectID;
+      const canCreate = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canCreate) {
+        res.status(403).send(new Error('You are unauthorized to update notes for this task'));
+      }
+
       await agility.updateNote(tID, notes);
       res.sendStatus(204);
     } catch (e) {
@@ -343,8 +558,19 @@ function startServer(agility: AgilityDatastore) {
 
   app.post('/tasks/:taskID/blocks', async (req: Request, res: Response) => {
     try {
+      const auth = await agility.validate(req.header('authorization'));
+      if (!auth) {
+        res.status(401).send(new Error('You must be signed in'));
+      }
+
       const tID = req.params.taskID;
       const blocks = req.body.blocks;
+      const pID = req.body.projectID;
+      const canCreate = await agility.getMemberStatus(auth['sub'], pID);
+      if (!canCreate) {
+        res.status(403).send(new Error('You are unauthorized to update blocks for this task'));
+      }
+      
       await agility.updateBlock(tID, blocks);
       res.sendStatus(204);
     } catch (e) {
