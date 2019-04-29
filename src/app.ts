@@ -497,7 +497,7 @@ function startServer(agility: AgilityDatastore) {
         block: req.body.block,
         note: req.body.note
       };
-      const pID = req.body.projectID;
+      const pID = req.header('projectid') || '';
       const canUpdate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canUpdate) {
         res.status(403).send(new Error('You are unauthorized to update this task'));
@@ -518,7 +518,7 @@ function startServer(agility: AgilityDatastore) {
       }
 
       const id = req.params.id;
-      const pID = req.body.projectID;
+      const pID = req.header('projectid') || '';
       const canDelete = await agility.getMemberStatus(auth['sub'], pID);
       if (!canDelete) {
         res.status(403).send(new Error('You are unauthorized to delete this task'));
@@ -542,7 +542,7 @@ function startServer(agility: AgilityDatastore) {
 
       const tID = req.params.taskID;
       const notes = req.body.notes;
-      const pID = req.body.projectID;
+      const pID = req.header('projectid') || '';
       const canCreate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canCreate) {
         res.status(403).send(new Error('You are unauthorized to update notes for this task'));
@@ -565,7 +565,7 @@ function startServer(agility: AgilityDatastore) {
 
       const tID = req.params.taskID;
       const blocks = req.body.blocks;
-      const pID = req.body.projectID;
+      const pID = req.header('projectid') || '';
       const canCreate = await agility.getMemberStatus(auth['sub'], pID);
       if (!canCreate) {
         res.status(403).send(new Error('You are unauthorized to update blocks for this task'));
